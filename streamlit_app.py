@@ -127,9 +127,9 @@ with col3:
             yanchor="bottom",
             y=0.80,
             xanchor="center",
-            x=0.7,
+            x=0.9,
             bgcolor="rgba(0,0,0,0)",
-            font=dict(size=8)
+            font=dict(size=9)
         )
     )
 
