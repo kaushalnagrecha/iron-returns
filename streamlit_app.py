@@ -6,7 +6,7 @@ import yfinance as yf
 # ----------------------------
 # Page Config
 # ----------------------------
-st.set_page_config(page_title="Hedge Fund Dashboard", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Market-Pulse Dashboard", layout="wide", initial_sidebar_state="expanded")
 
 # ----------------------------
 # Sidebar Strategy Summary
@@ -72,19 +72,20 @@ df["Decision"] = df.apply(categorize, axis=1)
 # ----------------------------
 # Sidebar Action Summary
 # ----------------------------
-st.sidebar.success("🟢 **Buy**: " + ", ".join(df[df["Decision"] == "Buy"]["Name"].tolist() or ["None"]))
-st.sidebar.warning("🟡 **Hold**: " + ", ".join(df[df["Decision"] == "Hold"]["Name"].tolist() or ["None"]))
-st.sidebar.error("🔴 **Sell**: " + ", ".join(df[df["Decision"] == "Sell"]["Name"].tolist() or ["None"]))
+st.sidebar.success("**Buy**: " + ", ".join(df[df["Decision"] == "Buy"]["Name"].tolist() or ["None"]))
+st.sidebar.warning("**Hold**: " + ", ".join(df[df["Decision"] == "Hold"]["Name"].tolist() or ["None"]))
+st.sidebar.error("**Sell**: " + ", ".join(df[df["Decision"] == "Sell"]["Name"].tolist() or ["None"]))
 
 # ----------------------------
 # Dashboard Title
 # ----------------------------
-st.markdown("### 📊 Hedge Fund Dashboard: Top 5 US Companies by Market Cap")
+st.markdown("### Market-Pulse Dashboard: Top 5 US Companies by Market Cap")
 
 # ----------------------------
 # Colors
 # ----------------------------
-color_map = {"Buy": "green", "Hold": "yellow", "Sell": "red"}
+bad_good_colorscale = [[0.0, "green"], [0.5, "yellow"], [1.0, "red"]]
+good_bad_colorscale = [[0.0, "red"], [0.5, "yellow"], [1.0, "green"]]
 
 # ----------------------------
 # Layout: Main Dashboard
@@ -92,24 +93,47 @@ color_map = {"Buy": "green", "Hold": "yellow", "Sell": "red"}
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.plotly_chart(px.bar(df, x="Name", y="PE Ratio", color="Decision", color_discrete_map=color_map,
-                           title="PE Ratio", height=200).update_layout(font=dict(size=10), margin=dict(t=30)), use_container_width=True)
-    
-    st.plotly_chart(px.bar(df, x="Name", y="Dividend Yield", color="Decision", color_discrete_map=color_map,
-                           title="Dividend Yield", height=200).update_layout(font=dict(size=10), margin=dict(t=30)), use_container_width=True)
+    st.plotly_chart(
+        px.bar(df, x="Name", y="PE Ratio", color="PE Ratio", color_continuous_scale=bad_good_colorscale,
+               title="PE Ratio", height=200)
+        .update_layout(font=dict(size=10), margin=dict(t=30), showlegend=False)
+        .update_coloraxes(showscale=False),
+        use_container_width=True)
 
-    st.plotly_chart(px.bar(df, x="Name", y="ROE", color="Decision", color_discrete_map=color_map,
-                           title="Return on Equity", height=200).update_layout(font=dict(size=10), margin=dict(t=30)), use_container_width=True)
+    st.plotly_chart(
+        px.bar(df, x="Name", y="Dividend Yield", color="Dividend Yield", color_continuous_scale=good_bad_colorscale,
+               title="Dividend Yield", height=200)
+        .update_layout(font=dict(size=10), margin=dict(t=30), showlegend=False)
+        .update_coloraxes(showscale=False),
+        use_container_width=True)
+
+    st.plotly_chart(
+        px.bar(df, x="Name", y="ROE", color="ROE", color_continuous_scale=good_bad_colorscale,
+               title="Return on Equity", height=200)
+        .update_layout(font=dict(size=10), margin=dict(t=30), showlegend=False)
+        .update_coloraxes(showscale=False),
+        use_container_width=True)
 
 with col2:
-    st.plotly_chart(px.bar(df, x="Name", y="EPS Growth", color="Decision", color_discrete_map=color_map,
-                           title="EPS Growth", height=200).update_layout(font=dict(size=10), margin=dict(t=30)), use_container_width=True)
+    st.plotly_chart(
+        px.bar(df, x="Name", y="EPS Growth", color="EPS Growth", color_continuous_scale=good_bad_colorscale,
+               title="EPS Growth", height=200)
+        .update_layout(font=dict(size=10), margin=dict(t=30), showlegend=False)
+        .update_coloraxes(showscale=False),
+        use_container_width=True)
 
-    st.plotly_chart(px.bar(df, x="Name", y=df["Market Cap"] / 1e9, color="Name",
-                           title="Market Cap (in $B)", height=200).update_layout(font=dict(size=10), margin=dict(t=30), showlegend=False), use_container_width=True)
+    st.plotly_chart(
+        px.bar(df, x="Name", y=df["Market Cap"] / 1e9,
+               title="Market Cap (in $B)", height=200)
+        .update_layout(font=dict(size=10), margin=dict(t=30), yaxis_title="Market Cap"),
+        use_container_width=True)
 
-    st.plotly_chart(px.bar(df, x="Name", y="Revenue Growth", color="Decision", color_discrete_map=color_map,
-                           title="Revenue Growth", height=200).update_layout(font=dict(size=10), margin=dict(t=30)), use_container_width=True)
+    st.plotly_chart(
+        px.bar(df, x="Name", y="Revenue Growth", color="Revenue Growth", color_continuous_scale=good_bad_colorscale,
+               title="Revenue Growth", height=200)
+        .update_layout(font=dict(size=10), margin=dict(t=30), showlegend=False)
+        .update_coloraxes(showscale=False),
+        use_container_width=True)
 
 with col3:
     fig_pe = px.line()
@@ -122,6 +146,7 @@ with col3:
         height=420,
         font=dict(size=10),
         margin=dict(t=30),
+        showlegend=True,  # Keep legend here for PE line chart (optional)
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -132,11 +157,14 @@ with col3:
             font=dict(size=9)
         )
     )
-
     st.plotly_chart(fig_pe, use_container_width=True)
 
-    st.plotly_chart(px.bar(df, x="Name", y="Debt/Equity", color="Decision", color_discrete_map=color_map,
-                           title="Debt-to-Equity Ratio", height=200).update_layout(font=dict(size=10), margin=dict(t=30)), use_container_width=True)
+    st.plotly_chart(
+        px.bar(df, x="Name", y="Debt/Equity", color="Debt/Equity", color_continuous_scale=bad_good_colorscale,
+               title="Debt-to-Equity Ratio", height=200)
+        .update_layout(font=dict(size=10), margin=dict(t=30), showlegend=False)
+        .update_coloraxes(showscale=False),
+        use_container_width=True)
 
 # ----------------------------
 # Footer
@@ -146,6 +174,5 @@ with footer_left:
     st.markdown("**Data Source**: Yahoo Finance", unsafe_allow_html=True)
 with footer_right:
     st.markdown(
-        '<div style="text-align:right">Maintained by: <a href="https://www.linkedin.com/in/kaushalnagrecha" target="_blank">Kaushal Nagrecha</a></div>',
-        unsafe_allow_html=True
-    )
+        '<div style="text-align:right">Maintained by: <a href="https://www.linkedin.com/in/kaushal-nagrecha" target="_blank">Kaushal Nagrecha</a></div>',
+        unsafe_allow_html=True)
